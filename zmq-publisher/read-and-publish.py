@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 import serial
 import zmq
 from threading import Thread
