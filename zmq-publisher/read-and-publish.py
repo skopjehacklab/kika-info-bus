@@ -3,10 +3,11 @@
 import serial
 import zmq
 from threading import Thread
+import os, ConfigParser
 
-DEV = "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A600617K-if00-port0"
-PUBSUB_ADDR = "tcp://*:5556"
-REQREP_ADDR = "tcp://*:5557"
+config = ConfigParser.RawConfigParser()
+config.read(os.environ['CONFIG_FILE'])
+
 
 def read_until_delimiter(ser, delimiter='\r\n\r\n'):
     buffer = ''
@@ -22,7 +23,7 @@ def read_until_delimiter(ser, delimiter='\r\n\r\n'):
 
 def reader(ctx, ser):
     socket = ctx.socket(zmq.PUB)
-    socket.bind(PUBSUB_ADDR)
+    socket.bind(config.get('publisher', 'pub_addr'))
 
     #  Wait for message from arduino
     for message in read_until_delimiter(ser):
@@ -31,7 +32,7 @@ def reader(ctx, ser):
 
 def writer(ctx, ser):
     socket = ctx.socket(zmq.REP)
-    socket.bind(REQREP_ADDR)
+    socket.bind(config.get('publisher', 'rep_addr'))
 
     while True:
         #  Wait for next request from 0mq client
@@ -42,7 +43,7 @@ def writer(ctx, ser):
 
 def main():
     ctx = zmq.Context()
-    ser = serial.Serial(DEV, timeout=10)
+    ser = serial.Serial(config.get('publisher', 'serial_device'), timeout=10)
 
     r = Thread(target=reader, args=[ctx, ser])
     w = Thread(target=writer, args=[ctx, ser])
