@@ -29,7 +29,7 @@ def main():
 
     msg = socket.recv()
     current_value = get_value(msg)
-    now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ%z')
+    now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ%z')
         
     if current_value == 'OPEN':
         payload={'datapoints': [{'at': now, 'value': 1}]}
@@ -37,8 +37,6 @@ def main():
         payload={'datapoints': [{'at': now, 'value': 0}]}
 
     r = requests.post(url, data=json.dumps(payload), headers=headers)
-    print url
-    print payload
 
 if __name__ == '__main__':
     main()
