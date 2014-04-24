@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import twitter
 import zmq
-import os, re, ConfigParser
+import os, re, datetime, ConfigParser
 
 
 config = ConfigParser.RawConfigParser()
@@ -27,11 +27,12 @@ def main():
     while True:
         msg = socket.recv()
         current_value = get_value(msg)
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if current_value != previous_value:
             if current_value == 'OPEN':
-                tweet.PostUpdate("Хаклабот е отворен. Дојди! http://blog.spodeli.org")
+                tweet.PostUpdate("Хаклабот е отворен. Дојди! http://blog.spodeli.org | %s" % now)
             if current_value == 'CLOSED':
-                tweet.PostUpdate("Хаклабот е затворен. :-( http://status.spodeli.org")
+                tweet.PostUpdate("Хаклабот е затворен. :-( http://status.spodeli.org | %s" % now)
         previous_value = current_value
 
 
