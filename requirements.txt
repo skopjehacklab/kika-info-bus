@@ -2,3 +2,4 @@ pyzmq
 gevent
 pyserial
 python-twitter
+requests
