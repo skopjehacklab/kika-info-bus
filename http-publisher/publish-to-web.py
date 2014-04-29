@@ -1,7 +1,7 @@
 # run with
 # uwsgi --plugins python,gevent --gevent 1000 --http-socket :5001 --wsgi-file ...
 
-
+from flask import Flask, Response
 import zmq.green as zmq
 import os, ConfigParser
 
@@ -10,18 +10,17 @@ config.read(os.environ['CONFIG_FILE'])
 
 ctx = zmq.Context()
 
-def application(env, start_response):
+app = Flask(__name__)
+
+@app.route('/')
+def index():
     socket = ctx.socket(zmq.SUB)
     socket.setsockopt(zmq.SUBSCRIBE, '')
     socket.connect(config.get('zmq', 'publisher_addr'))
     msg = socket.recv()
 
-    status = '200 OK'
-    response_headers = [('Content-type','text/plain')]
-    start_response(status, response_headers)
-
-    return [msg]
+    return Response(msg, content_type='text/plain; charset=utf-8')
 
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
-    WSGIServer(('', 8088), application).serve_forever()
+    WSGIServer(('', 8088), app).serve_forever()
