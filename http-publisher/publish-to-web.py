@@ -3,6 +3,7 @@
 
 from flask import Flask, Response
 import zmq.green as zmq
+import gevent
 import os, ConfigParser
 
 config = ConfigParser.RawConfigParser()
@@ -12,14 +13,23 @@ ctx = zmq.Context()
 
 app = Flask(__name__)
 
+@app.before_first_request
+def run():
+    app.latest_message = None
+    def _process():
+        socket = ctx.socket(zmq.SUB)
+        socket.setsockopt(zmq.SUBSCRIBE, '')
+        socket.connect(config.get('zmq', 'publisher_addr'))
+        while True:
+            msg = socket.recv()
+            app.latest_message = msg
+
+    gevent.spawn(_process)
+
+
 @app.route('/')
 def index():
-    socket = ctx.socket(zmq.SUB)
-    socket.setsockopt(zmq.SUBSCRIBE, '')
-    socket.connect(config.get('zmq', 'publisher_addr'))
-    msg = socket.recv()
-
-    return Response(msg, content_type='text/plain; charset=utf-8')
+    return Response(app.latest_message, content_type='text/plain; charset=utf-8')
 
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
