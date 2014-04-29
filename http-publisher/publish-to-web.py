@@ -24,3 +24,5 @@ def index():
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
     WSGIServer(('', 8088), app).serve_forever()
+else:
+    application = app
