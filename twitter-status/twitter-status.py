@@ -15,6 +15,16 @@ def get_value(msg):
     match = re.search(r'\b(OPEN|CLOSED)\b', msg)
     return match.group(1)
 
+def calculate_opened(td):
+    hours = td.total_seconds()/3600
+    minutes = (td.seconds()/60)%60
+
+    if hours == 1:
+        return "Беше отворен 1 час, %s минути." % minutes
+
+    return "Беше отворен %s часа, %s минути." % (hours, minutes)
+
+
 def main():
     socket = ctx.socket(zmq.SUB)
     socket.setsockopt(zmq.SUBSCRIBE, '')
@@ -24,15 +34,19 @@ def main():
 
     msg = socket.recv()
     previous_value = get_value(msg)
+    time_initial = datetime.datetime.now()
+
     while True:
         msg = socket.recv()
         current_value = get_value(msg)
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if current_value != previous_value:
+            time_of_change = datetime.datetime.now()
             if current_value == 'OPEN':
-                tweet.PostUpdate("Хаклабот е отворен. Дојди! http://blog.spodeli.org | %s" % now)
+                time_initial = time_of_change
+                tweet.PostUpdate("Хаклабот е отворен. Дојди! http://blog.spodeli.org | %s" % time_of_change.strftime('%d.%m.%Y %H:%M:%S'))
             if current_value == 'CLOSED':
-                tweet.PostUpdate("Хаклабот е затворен. :-( http://status.spodeli.org | %s" % now)
+                time_opened  = calculate_opened(time_of_change - time_initial)
+                tweet.PostUpdate("Хаклабот е затворен. :-( http://status.spodeli.org | %s" % time_opened)
         previous_value = current_value
 
 
