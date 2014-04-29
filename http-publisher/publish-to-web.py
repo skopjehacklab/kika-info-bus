@@ -26,6 +26,7 @@ def run():
             msg = socket.recv()
             app.latest_message = msg
             # wake up all the waiting requests
+            app.waiters_queue.put(StopIteration)
             for ev in app.waiters_queue:
                 ev.set()
 
