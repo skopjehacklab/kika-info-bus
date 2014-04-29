@@ -33,6 +33,7 @@ def index():
 
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
+    app.debug = True
     WSGIServer(('', 8088), app).serve_forever()
 else:
     application = app
