@@ -27,3 +27,10 @@ Install
 
     sudo apt-get install libzmq3-dev python-dev
     PYTHONUSERBASE=$PWD/py-env pip install --user -r requirements.txt
+
+
+PS
+==
+
+We could've used MQTT instead of ZeroMQ maybe? Seems to be gaining popularity in the embedded and internet of things
+world lately. Food for thought.
