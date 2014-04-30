@@ -2,6 +2,7 @@
 project_dir   =  /home/kikadevices/
 chdir         =  %(project_dir)
 uid           =  kikadevices
+gid           =  dialout
 
 master        =  true
 http-socket   =  :5001
