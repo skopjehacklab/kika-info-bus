@@ -17,7 +17,7 @@ def get_value(msg):
 
 def calculate_opened(td):
     hours = td.total_seconds()/3600
-    minutes = (td.seconds()/60)%60
+    minutes = (td.seconds/60)%60
 
     if hours == 1:
         return "Беше отворен 1 час, %s минути." % minutes
