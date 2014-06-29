@@ -1,0 +1,9 @@
+    location /status {
+        include uwsgi_params;
+        uwsgi_param SCRIPT_NAME /status;
+        uwsgi_modifier1 30;
+        uwsgi_pass 127.0.0.1:5001;
+        allow all;
+        proxy_buffering    off;
+        proxy_read_timeout 3600;
+    }
