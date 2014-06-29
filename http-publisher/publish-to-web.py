@@ -37,6 +37,21 @@ def run():
 def index():
     return Response(app.latest_message, content_type='text/plain; charset=utf-8')
 
+@app.route('/open')
+def openclosed():
+    status = None
+    if app.latest_message:
+        status = 'OPEN' in app.latest_message
+    while True:
+        ev = gevent.event.Event()
+        app.waiters_queue.put(ev)
+        ev.wait()
+        new_status = None
+        if app.latest_message:
+            new_status = 'OPEN' in app.latest_message
+        if new_status != status:
+            return Response('OPEN\n' if new_status else 'CLOSED\n', content_type='text/plain; charset=utf-8')
+
 @app.route('/longpoll')
 def longpoll():
     ev = gevent.event.Event()
