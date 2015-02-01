@@ -16,31 +16,35 @@ app = Flask(__name__)
 
 @app.before_first_request
 def run():
-    app.latest_message = gevent.event.AsyncResult()
+    app.last_known_status = None
+    app.live_status = gevent.event.AsyncResult()
     def _process():
         socket = ctx.socket(zmq.SUB)
         socket.setsockopt(zmq.SUBSCRIBE, '')
         socket.connect(config.get('zmq', 'publisher_addr'))
         while True:
             msg = socket.recv()
-            app.latest_message.set(msg)
-            app.latest_message = gevent.event.AsyncResult()
+            app.last_known_status = msg
+            app.live_status.set(msg)
+            app.live_status = gevent.event.AsyncResult()
 
     gevent.spawn(_process)
 
 
 @app.route('/')
 def index():
-    msg = app.latest_message.get()
+    msg = app.last_known_status
+    if msg is None:
+        msg = app.live_status.get()
     return Response(msg, content_type='text/plain; charset=utf-8')
 
 @app.route('/open')
 def openclosed():
-    status = 'OPEN' in app.latest_message.get()
+    status = 'OPEN' in app.live_status.get()
     # don't wait forever, only do several iterations waiting for a change in status
     # since the client might have aborted the request
     for i in range(100):
-        new_status = 'OPEN' in app.latest_message.get()
+        new_status = 'OPEN' in app.live_status.get()
         if new_status != status:
             msg = 'OPEN\n' if new_status else 'CLOSED\n'
             return Response(msg, content_type='text/plain; charset=utf-8')
@@ -48,7 +52,7 @@ def openclosed():
 
 @app.route('/longpoll')
 def longpoll():
-    msg = app.latest_message.get()
+    msg = app.live_status.get()
     return Response(msg, content_type='text/plain; charset=utf-8')
 
 if __name__ == '__main__':
