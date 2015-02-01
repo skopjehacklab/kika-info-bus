@@ -4,7 +4,7 @@
 from flask import Flask, Response
 import zmq.green as zmq
 import gevent
-import gevent.queue
+import gevent.event
 import os, ConfigParser
 
 config = ConfigParser.RawConfigParser()
@@ -16,48 +16,40 @@ app = Flask(__name__)
 
 @app.before_first_request
 def run():
-    app.latest_message = None
-    app.waiters_queue = gevent.queue.Queue()
+    app.latest_message = gevent.event.AsyncResult()
     def _process():
         socket = ctx.socket(zmq.SUB)
         socket.setsockopt(zmq.SUBSCRIBE, '')
         socket.connect(config.get('zmq', 'publisher_addr'))
         while True:
             msg = socket.recv()
-            app.latest_message = msg
-            # wake up all the waiting requests
-            app.waiters_queue.put(StopIteration)
-            for ev in app.waiters_queue:
-                ev.set()
+            app.latest_message.set(msg)
+            app.latest_message = gevent.event.AsyncResult()
 
     gevent.spawn(_process)
 
 
 @app.route('/')
 def index():
-    return Response(app.latest_message, content_type='text/plain; charset=utf-8')
+    msg = app.latest_message.get()
+    return Response(msg, content_type='text/plain; charset=utf-8')
 
 @app.route('/open')
 def openclosed():
-    status = None
-    if app.latest_message:
-        status = 'OPEN' in app.latest_message
-    while True:
-        ev = gevent.event.Event()
-        app.waiters_queue.put(ev)
-        ev.wait()
-        new_status = None
-        if app.latest_message:
-            new_status = 'OPEN' in app.latest_message
+    status = 'OPEN' in app.latest_message.get()
+    # don't wait forever, only do several iterations waiting for a change in status
+    # since the client might have aborted the request
+    for i in range(100):
+        new_status = 'OPEN' in app.latest_message.get()
         if new_status != status:
-            return Response('OPEN\n' if new_status else 'CLOSED\n', content_type='text/plain; charset=utf-8')
+            msg = 'OPEN\n' if new_status else 'CLOSED\n'
+            return Response(msg, content_type='text/plain; charset=utf-8')
+    return Response(status=204)
 
 @app.route('/longpoll')
 def longpoll():
-    ev = gevent.event.Event()
-    app.waiters_queue.put(ev)
-    ev.wait()
-    return Response(app.latest_message, content_type='text/plain; charset=utf-8')
+    msg = app.latest_message.get()
+    return Response(msg, content_type='text/plain; charset=utf-8')
 
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
