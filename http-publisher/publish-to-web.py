@@ -35,20 +35,22 @@ def run():
 def index():
     msg = app.last_known_status
     if msg is None:
-        msg = app.live_status.get()
+        return Response(status=204)
     return Response(msg, content_type='text/plain; charset=utf-8')
 
 @app.route('/open')
 def openclosed():
     status = 'OPEN' in app.live_status.get()
-    # don't wait forever, only do several iterations waiting for a change in status
-    # since the client might have aborted the request
-    for i in range(100):
-        new_status = 'OPEN' in app.live_status.get()
-        if new_status != status:
-            msg = 'OPEN\n' if new_status else 'CLOSED\n'
-            return Response(msg, content_type='text/plain; charset=utf-8')
-    return Response(status=204)
+    new_status = status
+    # don't wait forever, since the client might have aborted the request
+    with gevent.Timeout(300, False):
+        while new_status == status:
+            new_status = 'OPEN' in app.live_status.get()
+    if new_status != status:
+        msg = 'OPEN\n' if new_status else 'CLOSED\n'
+        return Response(msg, content_type='text/plain; charset=utf-8')
+    else:
+        return Response(status=204)
 
 @app.route('/longpoll')
 def longpoll():
