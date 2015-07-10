@@ -131,6 +131,6 @@ void loop(void) {
         Serial.println(millis());
     }
 
-    digitalRead(INPUTPIN) ? Serial.println("OPEN") : Serial.println("CLOSED");
+    digitalRead(INPUTPIN) ? Serial.println("status: OPEN") : Serial.println("status: CLOSED");
     Serial.println(); // additional \r\n
 }
