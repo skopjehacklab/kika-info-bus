@@ -2,11 +2,9 @@
 
 import serial
 import zmq
-from threading import Thread
 import os, ConfigParser
 
 config = ConfigParser.RawConfigParser()
-config.read(os.environ['CONFIG_FILE'])
 
 
 def read_until_delimiter(ser, delimiter='\r\n\r\n'):
@@ -30,29 +28,11 @@ def reader(ctx, ser):
         socket.send(message)
 
 
-def writer(ctx, ser):
-    socket = ctx.socket(zmq.REP)
-    socket.bind(config.get('publisher', 'rep_addr'))
-
-    while True:
-        #  Wait for next request from 0mq client
-        message = socket.recv()
-        ser.write(message)
-        socket.send('ok')
-
-
 def main():
+    config.read(os.environ['CONFIG_FILE'])
     ctx = zmq.Context()
     ser = serial.Serial(config.get('publisher', 'serial_device'), timeout=10)
-
-    r = Thread(target=reader, args=[ctx, ser])
-    w = Thread(target=writer, args=[ctx, ser])
-
-    r.start()
-    w.start()
-    w.join()
-    r.join()
-
+    reader(ctx, ser)
 
 if __name__ == '__main__':
     main()
