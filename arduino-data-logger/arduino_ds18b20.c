@@ -5,6 +5,8 @@
 #define CHANGERATE 5 // in which limits will the temperature change since the last reading, in degrees
 #define INPUTPIN 5
 
+// uses OneWire library from http://playground.arduino.cc/Learning/OneWire
+//
 // For every sensor found it outputs to serial:
 // SensorID,CurrentTemp,Readout time,Current time
 // Info at: http://wiki.spodeli.org/Хаклаб/Температура
