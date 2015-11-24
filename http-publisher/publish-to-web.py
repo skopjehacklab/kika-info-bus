@@ -40,13 +40,17 @@ def index():
 
 @app.route('/open')
 def openclosed():
-    status = 'OPEN' in app.live_status.get()
-    new_status = status
-    # don't wait forever, since the client might have aborted the request
+    # there's a small problem here
+    # if there's a very quick change, we might miss it, since on every longpoll
+    # we first wait for an additional message
+    new_status = prev_status = 'OPEN' in app.live_status.get()
+    # wait for change in status
+    # but don't wait forever, since the client might have aborted the request
     with gevent.Timeout(300, False):
-        while new_status == status:
+        while new_status == prev_status:
             new_status = 'OPEN' in app.live_status.get()
-    if new_status != status:
+
+    if new_status != prev_status:
         msg = 'OPEN\n' if new_status else 'CLOSED\n'
         return Response(msg, content_type='text/plain; charset=utf-8')
     else:
