@@ -1,11 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-import json
-
-def get_temperature(msg,json=False):
+def get_temperature(msg):
     """Parses the arduino output and returns a data structure with sensorid to name mapings.
-
-    Or the same data structure as json.
     """
     #sensorid to name mapping
     sensors = {
@@ -42,8 +38,4 @@ def get_temperature(msg,json=False):
             print "Haven't read new reading from %s for over 5 minutes." % datapoint_id
             continue
 
-    if json:
-        return json.dumps(sensors)
-
     return sensors
-
