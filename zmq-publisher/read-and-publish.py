@@ -15,7 +15,7 @@ def read_until_delimiter(ser, delimiter='\r\n\r\n'):
         messages = buffer.split(delimiter)
         if len(messages) > 1:
             for msg in messages[:-1]:
-                yield msg
+                yield msg + delimiter
             buffer = messages[-1]
 
 
