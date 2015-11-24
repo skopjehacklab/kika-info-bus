@@ -5,17 +5,13 @@ import requests
 import json
 import os, re, datetime, ConfigParser
 
-from tools import get_temperature
+from tools import get_temperature, get_status
 
 config = ConfigParser.RawConfigParser()
 config.read(os.environ['CONFIG_FILE'])
 
 
 ctx = zmq.Context()
-
-def get_status(msg):
-    match = re.search(r'\b(OPEN|CLOSED)\b', msg)
-    return match.group(1)
 
 def main():
     socket = ctx.socket(zmq.SUB)

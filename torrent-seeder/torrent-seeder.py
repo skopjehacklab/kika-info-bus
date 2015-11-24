@@ -3,15 +3,12 @@
 import zmq
 import os, re, ConfigParser
 
+from tools import get_status
 
 config = ConfigParser.RawConfigParser()
 config.read(os.environ['CONFIG_FILE'])
 
 ctx = zmq.Context()
-
-def get_value(msg):
-    match = re.search(r'\b(OPEN|CLOSED)\b', msg)
-    return match.group(1)
 
 def main():
     socket = ctx.socket(zmq.SUB)
@@ -19,11 +16,11 @@ def main():
     socket.connect(config.get('zmq', 'publisher_addr'))
 
     msg = socket.recv()
-    previous_value = get_value(msg)
+    previous_value = get_status(msg)
 
     while True:
         msg = socket.recv()
-        current_value = get_value(msg)
+        current_value = get_status(msg)
         if current_value != previous_value:
             if current_value == 'OPEN':
                 os.system("/usr/bin/transmission-remote --torrent all --stop 2>&1 > /dev/null")

@@ -4,16 +4,13 @@ import twitter
 import zmq
 import os, re, datetime, ConfigParser
 
+from tools import get_temperature, get_status
 
 config = ConfigParser.RawConfigParser()
 config.read(os.environ['CONFIG_FILE'])
 
 
 ctx = zmq.Context()
-
-def get_value(msg):
-    match = re.search(r'\b(OPEN|CLOSED)\b', msg)
-    return match.group(1)
 
 def calculate_opened(td):
     hours = int(td.total_seconds() / 3600)
@@ -33,12 +30,12 @@ def main():
             access_token_secret=config.get('twitter', 'access_token_secret'), consumer_secret=config.get('twitter', 'consumer_secret'))
 
     msg = socket.recv()
-    previous_value = get_value(msg)
+    previous_value = get_status(msg)
     time_initial = datetime.datetime.now()
 
     while True:
         msg = socket.recv()
-        current_value = get_value(msg)
+        current_value = get_status(msg)
         if current_value != previous_value:
             time_of_change = datetime.datetime.now()
             if current_value == 'OPEN':

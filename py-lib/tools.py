@@ -1,4 +1,12 @@
 # -*- encoding: utf-8 -*-
+import re
+
+def get_status(msg):
+    match = re.search(r'\b(OPEN|CLOSED)\b', msg)
+    if match is None:
+        return None
+    else:
+        return match.group(1)
 
 def get_temperature(msg):
     """Parses the arduino output and returns a data structure with sensorid to name mapings.
