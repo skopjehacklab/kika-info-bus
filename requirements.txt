@@ -4,3 +4,4 @@ pyserial
 python-twitter
 requests
 Flask
+influxdb

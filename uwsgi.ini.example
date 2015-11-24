@@ -43,4 +43,5 @@ api_key=xxx
 feed_id=222
 api_key=yyy
 
-
+[influxdb]
+database=influxdb://localhost:8086/mydb
