@@ -32,6 +32,7 @@ def main():
     config.read(os.environ['CONFIG_FILE'])
     ctx = zmq.Context()
     ser = serial.Serial(config.get('publisher', 'serial_device'), timeout=10)
+    ser.flushInput() #  reset_input_buffer() in pyserial 3.0
     reader(ctx, ser)
 
 if __name__ == '__main__':
