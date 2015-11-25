@@ -31,8 +31,12 @@ def get_temperature(msg):
                             },
     }
 
-    for line in msg.splitlines()[:-1]:
-        sensor_addr,curr_temp,readout_millis,current_millis = line.split(",")
+    for line in msg.splitlines():
+        try:
+            sensor_addr,curr_temp,readout_millis,current_millis = line.split(",")
+        except ValueError:
+            # ignore lines that are not sensors
+            continue
 
         try:
             sensors[sensor_addr]['value'] = curr_temp
