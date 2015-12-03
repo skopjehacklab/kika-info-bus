@@ -45,3 +45,8 @@ api_key=yyy
 
 [influxdb]
 database=influxdb://localhost:8086/mydb
+
+[Lan Devices]
+exclude_list=00:11:22:33:44:55
+    11:22:33:44:55:66
+    22:33:44:55:66:77

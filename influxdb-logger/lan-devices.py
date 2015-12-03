@@ -8,16 +8,7 @@ config = ConfigParser.RawConfigParser()
 config.read(os.environ['CONFIG_FILE'])
 
 CMD = ['ip', '-4', 'neigh', 'list', 'dev', 'enp1s1', 'nud', 'reachable']
-BLACKLIST = [
- '00:0c:76:5d:1c:9c',
- '00:20:4a:e0:1e:a3',
- 'b8:27:eb:1b:dd:cf',
- '50:90:00:48:24:01',
- '64:70:02:b0:38:de',
- '00:20:4a:e0:1e:a3',
- 'b8:27:eb:64:0a:63',
- 'b8:27:eb:18:80:7d'
-]
+BLACKLIST = config.get('Lan Devices', 'exclude_list').splitlines()
 
 def main():
     result = subprocess.check_output(CMD)
