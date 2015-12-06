@@ -7,8 +7,8 @@ import os, ConfigParser
 config = ConfigParser.RawConfigParser()
 
 
-def read_until_delimiter(input_stream, delimiter='\r\n\r\n'):
-    buffer = ''
+def read_until_delimiter(input_stream, delimiter=b'\r\n\r\n'):
+    buffer = bytearray()
     for data in input_stream:
         buffer += data
         messages = buffer.split(delimiter)
