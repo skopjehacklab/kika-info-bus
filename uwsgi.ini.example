@@ -16,6 +16,10 @@ gevent        =  1000
 wsgi-file     =  %(project_dir)/http-publisher/publish-to-web.py
 
 cron          = -5 -1 -1 -1 -1 %(project_dir)/xively-logger/xively-logger.py
+cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/temperatures.py
+cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/lan-devices.py
+cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/status.py
+
 
 attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/read-and-publish.py,uid=kikadevices,gid=dialout
 attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/receive-and-write.py,uid=kikadevices,gid=dialout
