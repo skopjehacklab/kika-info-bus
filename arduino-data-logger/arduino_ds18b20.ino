@@ -8,7 +8,6 @@ LiquidCrystal lcd(6, 7, 8, 9, 10, 11);
 
 // printf support
 static int Serial_write(char c, FILE *) {
-    if (c == '\n') Serial.write('\r');  // convert LF -> CRLF
     return Serial.write(c);
 }
 static FILE mystdout;
@@ -23,7 +22,7 @@ void setup(void) {
 void loop(void) {
   byte data[12];
   byte addr[8];
-  
+
   if ( !ds.search(addr)) {
     if (digitalRead(INPUTPIN)) {
       Serial.println("status: OPEN");
@@ -35,12 +34,12 @@ void loop(void) {
     delay(1000);
     return;
   }
-  
+
   if (OneWire::crc8(addr, 7) != addr[7]) {
       Serial.println("<4>addr CRC is not valid!");
       return;
   }
- 
+
   // the first ROM byte indicates which chip
   switch (addr[0]) {
     case 0x28: // only handle DS18B20 for now;
@@ -53,10 +52,10 @@ void loop(void) {
   ds.reset();
   ds.select(addr);
   ds.write(0x44, 1);        // start conversion, with parasite power on at the end
-  
+
   delay(1000);     // maybe 750ms is enough, maybe not
   // we might do a ds.depower() here, but the reset will take care of it.
-  
+
   ds.reset();
   ds.select(addr);
   ds.write(0xBE);         // Read Scratchpad
@@ -72,7 +71,7 @@ void loop(void) {
   // OUTPUT
   float celsius = calculateTemperature(data);
   lcdPrint(addr, celsius);
-  
+
   for(byte j = 0; j < 7; j++) {
     printf("%02X", addr[j]);
   }
@@ -96,7 +95,7 @@ float calculateTemperature(byte data[8]) {
   else if (cfg == 0x20) raw = raw & ~3; // 10 bit res, 187.5 ms
   else if (cfg == 0x40) raw = raw & ~1; // 11 bit res, 375 ms
   //// default is 12 bit resolution, 750 ms conversion time
-  return raw / 16;
+  return (float)raw / 16;
 }
 
 void lcdPrint(byte addr[7], float celsius) {
@@ -111,10 +110,10 @@ void lcdPrint(byte addr[7], float celsius) {
   } else if (memcmp(addr, (const byte[]){0x28, 0xB5, 0x03, 0x59, 0x03, 0x00, 0x00}, 7) == 0) {
     place = "HW room: ";
     line = 2;
-  } else if (memcmp(addr, (const byte[]){0x28, 0x5B, 0xEF, 0x57, 0x03, 0x00, 0x00}, 7) == 0) { 
+  } else if (memcmp(addr, (const byte[]){0x28, 0x5B, 0xEF, 0x57, 0x03, 0x00, 0x00}, 7) == 0) {
     place = "Random: ";
     line = 3;
-  } else { 
+  } else {
     return;
   };
   lcd.setCursor(0, line);
