@@ -2,9 +2,9 @@
 #include <LiquidCrystal.h>
 
 #define INPUTPIN 5
+
 OneWire  ds(12);  // on pin 12 (a 4.7K resistor is necessary)
 LiquidCrystal lcd(6, 7, 8, 9, 10, 11);
-
 
 // printf support
 static int Serial_write(char c, FILE *) {
@@ -20,33 +20,47 @@ void setup(void) {
 }
 
 void loop(void) {
-  byte data[12];
+  byte data[9];
   byte addr[8];
 
-  if ( !ds.search(addr)) {
-    if (digitalRead(INPUTPIN)) {
-      Serial.println("status: OPEN");
-    } else {
-      Serial.println("status: CLOSED");
+  if (readNextSensor(addr, data)) {
+    float celsius = calculateTemperature(data);
+    lcdPrint(addr, celsius);
+
+    for(byte j = 0; j < 7; j++) {
+      printf("%02X", addr[j]);
     }
+    Serial.print(',');
+    Serial.print(celsius);
+    Serial.print(',');
+    Serial.print(millis());
     Serial.println();
-    ds.reset_search();
+  } else {
+    byte isOpen = digitalRead(INPUTPIN);
+    Serial.print("status: ");
+    Serial.println(isOpen ? "OPEN":"CLOSED");
+    Serial.println();
     delay(1000);
     return;
   }
+}
 
-  if (OneWire::crc8(addr, 7) != addr[7]) {
-      Serial.println("<4>addr CRC is not valid!");
-      return;
+// returns false when all sensors were read
+boolean readNextSensor(byte addr[8], byte data[9]) {
+  if (!ds.search(addr)) {
+    ds.reset_search();
+    return false;
   }
 
-  // the first ROM byte indicates which chip
-  switch (addr[0]) {
-    case 0x28: // only handle DS18B20 for now;
-      break;
-    default:
-      //Serial.println("<4>Device is not a DS18x20 family device.");
-      return;
+  if (OneWire::crc8(addr, 7) != addr[7]) {
+    printf("<4>addr CRC is not valid!\r\n");
+    return true;
+  }
+
+  // the first ROM byte indicates which chip, DS18B20 is 0x28
+  if (addr[0] != 0x10 && addr[0] != 0x28) {
+    printf("<4>Device %02X is not recognized\r\n", addr[0]);
+    return true;
   }
 
   ds.reset();
@@ -64,22 +78,9 @@ void loop(void) {
     data[i] = ds.read();
   }
   if (OneWire::crc8(data, 8) != data[8]) {
-    Serial.println("<4>data CRC is not valid!");
-    return;
+    printf("<4>data CRC is not valid!\r\n");
+    return true;
   }
-
-  // OUTPUT
-  float celsius = calculateTemperature(data);
-  lcdPrint(addr, celsius);
-
-  for(byte j = 0; j < 7; j++) {
-    printf("%02X", addr[j]);
-  }
-  Serial.print(',');
-  Serial.print(celsius);
-  Serial.print(',');
-  Serial.print(millis());
-  Serial.println();
 }
 
 float calculateTemperature(byte data[8]) {
