@@ -23,8 +23,13 @@ def main():
 
     msg = socket.recv()
     current_status = get_status(msg)
-
     now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ%z')
+
+    r = client.query("SELECT doorstatus FROM doorstatus WHERE location='hacklab' ORDER BY time DESC LIMIT 1")
+    last_status = list(r['doorstatus'])[0]['doorstatus']
+
+    if current_status == last_status:
+        return
     data = [
         {
             "measurement": "doorstatus",
@@ -35,8 +40,8 @@ def main():
             "fields": { "doorstatus": current_status }
         }
     ]
-
     client.write_points(data)
+
 
 if __name__ == '__main__':
     main()
