@@ -1,10 +1,13 @@
+#include <Encoder.h>
 #include <OneWire.h>
 #include <LiquidCrystal.h>
 
 #define INPUTPIN 5
+#define KNOBTHRESH 20
 
 OneWire  ds(12);  // on pin 12 (a 4.7K resistor is necessary)
 LiquidCrystal lcd(6, 7, 8, 9, 10, 11);
+Encoder knob(3, 4);
 
 // printf support
 static int Serial_write(char c, FILE *) {
@@ -17,11 +20,24 @@ void setup(void) {
   stdout = &mystdout;
   fdev_setup_stream(stdout, Serial_write, NULL, _FDEV_SETUP_WRITE);
   lcd.begin(20, 4);
+  knob.write(0);
 }
 
 void loop(void) {
   byte data[9];
   byte addr[8];
+  long knobPos;
+
+  knobPos = knob.read();
+
+  if (abs(knobPos) > KNOBTHRESH) {
+    if (knobPos < 0) { // going up
+      knob.write(0);
+    }
+    if (knobPos > 0) { // going down
+      knob.write(0);
+    }
+  }
 
   if (readNextSensor(addr, data)) {
     float celsius = calculateTemperature(data);
@@ -53,13 +69,13 @@ boolean readNextSensor(byte addr[8], byte data[9]) {
   }
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
-    printf("<4>addr CRC is not valid!\r\n");
+    Serial.println("<4>addr CRC is not valid!");
     return true;
   }
 
   // the first ROM byte indicates which chip, DS18B20 is 0x28
   if (addr[0] != 0x10 && addr[0] != 0x28) {
-    printf("<4>Device %02X is not recognized\r\n", addr[0]);
+    Serial.print("<4>Device %02X is not recognized", addr[0]);
     return true;
   }
 
@@ -78,7 +94,7 @@ boolean readNextSensor(byte addr[8], byte data[9]) {
     data[i] = ds.read();
   }
   if (OneWire::crc8(data, 8) != data[8]) {
-    printf("<4>data CRC is not valid!\r\n");
+    Serial.println("<4>data CRC is not valid!");
     return true;
   }
 }
