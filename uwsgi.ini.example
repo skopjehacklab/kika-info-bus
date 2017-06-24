@@ -1,19 +1,23 @@
 [uwsgi]
-project_dir   =  /home/kikadevices/
-chdir         =  %(project_dir)
-uid           =  kikadevices
-gid           =  dialout
+project_dir =  /home/kikadevices/
+chdir       =  %(project_dir)
 
-master        =  true
-http-socket   =  :5001
+master      =  true
 
-env           =  PYTHONUSERBASE=%(project_dir)/py-env
-env           =  PYTHONPATH=%(project_dir)/py-lib
-env           =  CONFIG_FILE=%p
+socket      = /run/uwsgi/%n.sock
+chmod-socket  = 666
 
-plugins       =  python,gevent
-gevent        =  1000
-wsgi-file     =  %(project_dir)/http-publisher/publish-to-web.py
+
+env         =  PYTHONUSERBASE=%(project_dir)/py-env
+env         =  PYTHONPATH=%(project_dir)/py-lib
+env         =  CONFIG_FILE=%p
+
+plugin      =  python27
+plugin      =  gevent_python27
+gevent      =  1000
+mount       =  /status=%(project_dir)/http-publisher/publish-to-web.py
+manage-script-name = true
+
 
 cron          = -5 -1 -1 -1 -1 %(project_dir)/xively-logger/xively-logger.py
 cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/temperatures.py
@@ -21,9 +25,9 @@ cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/lan-devices.py
 cron          = -5 -1 -1 -1 -1 %(project_dir)/influxdb-logger/status.py
 
 
-attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/read-and-publish.py,uid=kikadevices,gid=dialout
-attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/receive-and-write.py,uid=kikadevices,gid=dialout
-attach-daemon2 = cmd=exec %(project_dir)/twitter-status/twitter-status.py,uid=kikadevices
+attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/read-and-publish.py
+attach-daemon2 = cmd=exec %(project_dir)/zmq-publisher/receive-and-write.py
+attach-daemon2 = cmd=exec %(project_dir)/twitter-status/twitter-status.py
 
 [publisher]
 pub_addr            = tcp://*:5556

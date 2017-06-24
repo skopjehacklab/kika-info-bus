@@ -29,6 +29,54 @@ Install
     PYTHONUSERBASE=$PWD/py-env pip install --user -r requirements.txt
 
 
+Systemd Service
+===============
+
+To run in production you can use a recent enough Debian, Ubuntu or Arch. You can create an unpriviledged user for the
+service (or even use the `DynamicUser=` systemd option on recent enough versions).
+
+On debian stretch (9.0) install `nginx`, `uwsgi-core`, uwsgi-plugin-python` and `uwsgi-plugin-gevent-python`. uwsgi can
+use systemd socket activation, so it's best to let systemd manage the socket - thus it can give the socket coresponding
+permissions without having to run uwsgi itself with elevated privileges. The service is added to the dialout
+SupplementaryGroup so that it can open the serial device.
+
+`/etc/systemd/system/kika-info-bus.service`:
+```
+[Unit]
+Description=kika-info-bus uwsgi services
+After=network.target
+
+[Service]
+Type=notify
+User=kikadevices
+SupplementaryGroups=dialout
+ExecStart=/usr/bin/uwsgi --ini /etc/uwsgi/kika-info-bus.ini --die-on-term
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Also=kika-info-bus.socket
+```
+
+`/etc/systemd/system/kika-info-bus.socket`:
+```
+[Unit]
+Description=kika-info-bus socket
+
+[Socket]
+ListenStream=/run/kika-info-bus.sock
+SocketMode=0660
+SocketGroup=www-data
+
+[Install]
+WantedBy=sockets.target
+```
+
+In the end enable and start the service `systemctl enable --now kika-info-bus`
+
+
 PS
 ==
 
