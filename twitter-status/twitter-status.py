@@ -1,5 +1,6 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python2
 # -*- encoding: utf-8 -*-
+
 import twitter
 import zmq
 import os, re, datetime, ConfigParser

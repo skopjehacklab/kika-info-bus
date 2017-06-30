@@ -1,5 +1,4 @@
-# run with
-# uwsgi --plugins python,gevent --gevent 1000 --http-socket :5001 --wsgi-file ...
+# -*- encoding: utf-8 -*-
 
 from flask import Flask, Response
 import zmq.green as zmq
