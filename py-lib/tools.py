@@ -19,18 +19,18 @@ def get_temperature(msg):
       "285BEF57030000": { "name": "random_room" },
     }
 
+    readouts = {}
     for line in msg.splitlines():
         try:
             sensor_addr,curr_temp,readout_millis = line.split(",")
         except ValueError:
             # ignore lines that are not sensors
             continue
-
         try:
-            sensors[sensor_addr]['value'] = curr_temp
-            sensors[sensor_addr]['readout_millis'] = readout_millis
+            readouts[sensor_addr] = sensors[sensor_addr].copy()
+            readouts[sensor_addr]['value'] = curr_temp
+            readouts[sensor_addr]['readout_millis'] = readout_millis
         except KeyError:
             print "Unknown sensor found %s" % sensor_addr
             continue
-
-    return sensors
+    return readouts
