@@ -27,9 +27,11 @@ Adafruit_MQTT_Publish feedPir = Adafruit_MQTT_Publish(&mqtt, "haklab/hodnik/pirs
 void MQTT_connect();
 
 int buttonState = 0;
+int prevBtnPub = 0;
 int pirState = 0;
-int prevButtonState = 0;
-int prevPirState = 0;
+int prevPirPub = 0;
+bool pubButtonState = 0;
+bool pubPirState = 0;
 
 void setup() {
   pinMode(ledPin, OUTPUT);
@@ -61,8 +63,25 @@ void setup() {
   pirState = digitalRead(pirPin);
   feedButton.publish(buttonState == HIGH ? "ON" : "OFF");
   feedPir.publish(pirState == HIGH ? "ON" : "OFF");
-  prevButtonState = buttonState;
-  prevPirState = pirState;
+  prevBtnPub = buttonState;
+  prevPirPub = pirState;
+
+  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonChanged, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(pirPin), pirChanged, CHANGE);
+}
+
+void buttonChanged() {
+  buttonState = digitalRead(buttonPin);
+  Serial.print(F("Set BTN state: "));
+  Serial.println(buttonState == HIGH ? "ON" : "OFF");
+  pubButtonState = true;
+}
+
+void pirChanged() {
+  pirState = digitalRead(pirPin);
+  Serial.print(F("Set PIR state: "));
+  Serial.println(pirState == HIGH ? "ON" : "OFF");
+  pubPirState = true;
 }
 
 void ledCallback(char *data, uint16_t len) {
@@ -77,30 +96,45 @@ void ledCallback(char *data, uint16_t len) {
   }
 }
 
+int msecMqttProc = 100;
+int loopsForPing = 0;
+
 void loop() {
   MQTT_connect();
 
-  buttonState = digitalRead(buttonPin);
-  pirState = digitalRead(pirPin);
-  if (buttonState != prevButtonState) {
-    feedButton.publish(buttonState == HIGH ? "ON" : "OFF");  
-    Serial.print(F("Set BTN state: "));
+  if (pubButtonState) {
+    if (prevBtnPub == LOW && buttonState == LOW) {
+      Serial.println(F("Missed a button ON event, publishing it..."));
+      feedButton.publish("ON");  
+    }
+    Serial.print(F("Publishing BTN state: "));
     Serial.println(buttonState == HIGH ? "ON" : "OFF");
+    feedButton.publish(buttonState == HIGH ? "ON" : "OFF");  
+    pubButtonState = false;
+    prevBtnPub = buttonState;
   }
-  if (pirState != prevPirState) {
-    feedPir.publish(pirState == HIGH ? "ON" : "OFF");
-    Serial.print(F("Set PIR state: "));
+  if (pubPirState) {
+    if (prevPirPub == LOW && pirState == LOW) {
+      Serial.println(F("Missed a pir ON event, publishing it..."));
+      feedPir.publish("ON");  
+    }
+    Serial.print(F("Publishing PIR state: "));
     Serial.println(pirState == HIGH ? "ON" : "OFF");
+    feedPir.publish(pirState == HIGH ? "ON" : "OFF");
+    pubPirState = false;
+    prevPirPub = pirState;
   }
-  prevButtonState = buttonState;
-  prevPirState = pirState;
-
-  mqtt.processPackets(500);
+  
+  mqtt.processPackets(msecMqttProc);
 
   // ping the server to keep the mqtt connection alive
-  if(! mqtt.ping()) {
-    mqtt.disconnect();
+  int secsSinceLastPing = loopsForPing / (1000 / msecMqttProc);
+  if (secsSinceLastPing > 30) {
+    if(!mqtt.ping())
+      mqtt.disconnect();
+    loopsForPing = 0;
   }
+  loopsForPing++;
 
 }
 
