@@ -13,6 +13,11 @@ def on_connect(client, userdata, flags, rc):
     client.message_callback_add('haklab/hodnik/button', influx_toggle_doorstatus)
     client.message_callback_add('haklab/wifi/landevices', influx_update_lan_devices)
     client.message_callback_add('haklab/+/temp', influx_update_temperatures)
+    client.subscribe('haklab/hodnik/button')
+    client.subscribe('haklab/wifi/landevices')
+    client.subscribe('haklab/+/temp')
+
+    print('connected')
 
     sn = sdnotify.SystemdNotifier()
     sn.notify("READY=1")
@@ -27,8 +32,9 @@ def main():
     userdata['influx'] = influx
     userdata['tags'] = { "location": "hacklab" }
 
-    mqtt = paho.mqtt.client.Client(client_id='1eecf04e-b3f2-4ada-8b89-0767a1338725',
-            clean_session=False, userdata=userdata)
+    mqtt = paho.mqtt.client.Client(userdata=userdata,
+           client_id='1eecf04e-b3f2-4ada-8b89-0767a1338725',
+           clean_session=True)
     mqtt.on_connect = on_connect
 
     mqtt.connect(MQTT)
