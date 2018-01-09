@@ -1,0 +1,20 @@
+[Unit]
+Description=Kika Info Bus
+
+[Service]
+Type=notify
+Environment=PYTHONUNBUFFERED=true
+Environment=PYTHONUSERBASE=/srv/kika-infobus
+
+Environment=MQTT_SERVER=
+Environment=INFLUX_SERVER=
+Environment=TWITTER_CONSUMER_KEY=
+Environment=TWITTER_CONSUMER_SECRET=
+Environment=TWITTER_ACCESS_TOKEN_KEY=
+Environment=TWITTER_ACCESS_TOKEN_SECRET=
+
+
+ExecStart=/usr/bin/python3 -m infobus
+
+[Install]
+WantedBy=multi-user.target

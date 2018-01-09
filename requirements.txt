@@ -1,7 +1,4 @@
-pyzmq
-gevent
-pyserial
-python-twitter
-requests
-Flask
+paho-mqtt
 influxdb
+python-twitter
+sdnotify
