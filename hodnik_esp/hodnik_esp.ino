@@ -1,10 +1,13 @@
+#include <ESP8266WiFi.h>
 #include <Adafruit_MQTT.h>
 #include <Adafruit_MQTT_Client.h>
-#include <ESP8266WiFi.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 const int buttonPin = D8;     // the number of the pushbutton pin
 const int ledPin =  D6;       // the number of the LED pin
-const int pirPin =  D3;       // the number of the PIR sensor pin
+const int pirPin =  D5;       // the number of the PIR sensor pin
+const int onewirePin = D2;
 
 #define WLAN_SSID       "KIKA"
 #define WLAN_PASS       ""
@@ -17,10 +20,14 @@ const int pirPin =  D3;       // the number of the PIR sensor pin
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, MQTT_SERVERPORT, MQTT_USERNAME, MQTT_USERNAME, MQTT_KEY);
 
-Adafruit_MQTT_Subscribe feedLed = Adafruit_MQTT_Subscribe(&mqtt, "haklab/hodnik/led");
+Adafruit_MQTT_Subscribe feedLed = Adafruit_MQTT_Subscribe(&mqtt, "haklab/status");
+Adafruit_MQTT_Publish feedBoot = Adafruit_MQTT_Publish(&mqtt, "haklab/hodnik/bootup");
 Adafruit_MQTT_Publish feedButton = Adafruit_MQTT_Publish(&mqtt, "haklab/hodnik/button");
 Adafruit_MQTT_Publish feedPir = Adafruit_MQTT_Publish(&mqtt, "haklab/hodnik/pirsensor");
+Adafruit_MQTT_Publish feedTemp = Adafruit_MQTT_Publish(&mqtt, "haklab/hodnik/temp");
 
+OneWire oneWire(onewirePin);
+DallasTemperature sensors(&oneWire);
 
 // Bug workaround for Arduino 1.6.6, it seems to need a function declaration
 // for some reason (only affects ESP8266, likely an arduino-builder bug).
@@ -37,7 +44,9 @@ void setup() {
   pinMode(ledPin, OUTPUT);
   pinMode(buttonPin, INPUT);
   pinMode(pirPin, INPUT);
-
+  sensors.begin();
+  sensors.setResolution(12);
+ 
   Serial.begin(115200);
   delay(10);
 
@@ -56,6 +65,10 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
+  sensors.requestTemperatures(); // Send the command to get temperatures
+  Serial.print("Temperature for the device 1 (index 0) is: ");
+  Serial.println(sensors.getTempCByIndex(0)); 
+
   feedLed.setCallback(&ledCallback);
   mqtt.subscribe(&feedLed);
 
@@ -68,6 +81,8 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(buttonPin), buttonChanged, CHANGE);
   attachInterrupt(digitalPinToInterrupt(pirPin), pirChanged, CHANGE);
+
+  feedBoot.publish("ON");
 }
 
 void buttonChanged() {
@@ -88,10 +103,10 @@ void ledCallback(char *data, uint16_t len) {
   Serial.print(F("Got LED state: "));
   Serial.println(data);
   
-  if (strcmp(data, "OFF") == 0) {
+  if (strcmp(data, "CLOSED") == 0) {
     digitalWrite(ledPin, LOW); 
   }
-  if (strcmp(data, "ON") == 0) {
+  if (strcmp(data, "OPEN") == 0) {
     digitalWrite(ledPin, HIGH); 
   }
 }
@@ -130,8 +145,17 @@ void loop() {
   // ping the server to keep the mqtt connection alive
   int secsSinceLastPing = loopsForPing / (1000 / msecMqttProc);
   if (secsSinceLastPing > 30) {
+    
     if(!mqtt.ping())
       mqtt.disconnect();
+
+    sensors.setResolution(12);
+    sensors.requestTemperatures(); // Send the command to get temperatures
+    float temp = sensors.getTempCByIndex(0);
+    Serial.print("Temperature for the device 1 (index 0) is: ");
+    Serial.println(temp); 
+    feedTemp.publish(temp);
+
     loopsForPing = 0;
   }
   loopsForPing++;
@@ -151,17 +175,21 @@ void MQTT_connect() {
 
   Serial.print("Connecting to MQTT... ");
 
-  uint8_t retries = 3;
+  uint8_t retries = 12; // retry for one minute
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
-       Serial.println(mqtt.connectErrorString(ret));
-       Serial.println("Retrying MQTT connection in 5 seconds...");
-       mqtt.disconnect();
-       delay(5000);  // wait 5 seconds
-       retries--;
-       if (retries == 0) {
-         // basically die and wait for WDT to reset me
-         while (1);
-       }
+    Serial.println(mqtt.connectErrorString(ret));
+    Serial.println("Retrying MQTT connection in 5 seconds...");
+    mqtt.disconnect();
+    
+    delay(5000);  // wait 5 seconds
+    retries--;
+    if (retries == 0) {
+      // reset ourselves
+      ESP.restart();
+    }
   }
   Serial.println("MQTT Connected!");
+  
+  // tell the world we reconnected, send us updates
+  feedBoot.publish("ON");
 }
