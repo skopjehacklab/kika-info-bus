@@ -8,6 +8,7 @@ def get_last_status(influx):
 
 
 def bootup(client, userdata, msg):
+    influx = userdata['influx']
     current_status = get_last_status(influx)
     client.publish('haklab/status', current_status)
 
