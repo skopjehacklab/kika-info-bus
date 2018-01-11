@@ -5,7 +5,7 @@ import sdnotify
 
 from .landevices import influx_update_lan_devices
 from .temperatures import influx_update_temperatures
-from .doorstatus import influx_toggle_doorstatus
+from .doorstatus import influx_toggle_doorstatus, bootup
 
 import os
 
@@ -13,9 +13,11 @@ def on_connect(client, userdata, flags, rc):
     client.message_callback_add('haklab/hodnik/button', influx_toggle_doorstatus)
     client.message_callback_add('haklab/wifi/landevices', influx_update_lan_devices)
     client.message_callback_add('haklab/+/temp', influx_update_temperatures)
+    client.(message_callback_add'haklab/+/bootup', bootup)
     client.subscribe('haklab/hodnik/button')
     client.subscribe('haklab/wifi/landevices')
     client.subscribe('haklab/+/temp')
+    client.subscribe('haklab/+/bootup')
 
     print('connected')
 
