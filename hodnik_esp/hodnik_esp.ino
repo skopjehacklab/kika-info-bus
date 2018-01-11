@@ -4,7 +4,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-const int buttonPin = D8;     // the number of the pushbutton pin
+const int buttonPin = D7;     // the number of the pushbutton pin
 const int ledPin =  D6;       // the number of the LED pin
 const int pirPin =  D5;       // the number of the PIR sensor pin
 const int onewirePin = D2;
