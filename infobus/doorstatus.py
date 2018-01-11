@@ -2,6 +2,9 @@ from __future__ import print_function
 
 import datetime
 
+def get_last_status(influx):
+    r = influx.query("SELECT doorstatus FROM doorstatus WHERE location='hacklab' ORDER BY time DESC LIMIT 1")
+    return list(r['doorstatus'])[0]['doorstatus']
 
 def influx_toggle_doorstatus(client, userdata, msg):
     now = datetime.datetime.utcnow()
@@ -9,9 +12,7 @@ def influx_toggle_doorstatus(client, userdata, msg):
         return # ignore
 
     influx = userdata['influx']
-
-    r = influx.query("SELECT doorstatus FROM doorstatus WHERE location='hacklab' ORDER BY time DESC LIMIT 1")
-    last_status = list(r['doorstatus'])[0]['doorstatus']
+    last_status = get_last_status(influx)
 
     current_status = 'CLOSED' if last_status == 'OPEN' else 'OPEN'
 
