@@ -10,6 +10,8 @@ Based on MQTT (old stuff, based on 0mq is in `legacy/`).
 * openwrt num associations
 * …
 
+![mqtt](https://raw.githubusercontent.com/skopjehacklab/kika-info-bus/master/mqtt.png "MQTT")
+
 ## subscribers
 * store to influxdb
 * send twitter message
@@ -23,8 +25,9 @@ Based on MQTT (old stuff, based on 0mq is in `legacy/`).
 
 ## Python service
 
-Listens on events from MQTT topics and sends it to outside services. The systemd `.service` file assumes it's installed
-in `/srv/kika-info-bus`. Configure paths and connection settings in it and put it in `/etc/systemd/system/`.
+Listens on events from MQTT topics and sends it outside of the hacklab, to InfluxDB, Twitter and similar.
+The systemd `.service` file assumes it's installed in `/srv/kika-info-bus`.
+Configure paths and connection settings in it and put it in `/etc/systemd/system/`.
 
 To install dependencies:
 ```
