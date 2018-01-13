@@ -1,6 +1,6 @@
 # Kika Info Bus 2.0
 
-Based on MQTT (old stuff is in `legacy/`).
+Based on MQTT (old stuff, based on 0mq is in `legacy/`).
 
 ## publishers
 * temp sensors
@@ -21,4 +21,15 @@ Based on MQTT (old stuff is in `legacy/`).
 * AC (turn off)
 * …
 
+## Python service
+
+Listens on events from MQTT topics and sends it to outside services. The systemd `.service` file assumes it's installed
+in `/srv/kika-info-bus`. Configure paths and connection settings in it and put it in `/etc/systemd/system/`.
+
+To install dependencies:
+```
+cd /srv/kika-info-bus
+export PYTHONUSERBASE=$PWD/py-env
+pip3 install --user -r requirements.txt
+```
 

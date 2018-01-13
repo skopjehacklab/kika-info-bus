@@ -3,11 +3,13 @@ Description=Kika Info Bus
 
 [Service]
 Type=notify
+DynamicUser=yes
 Environment=PYTHONUNBUFFERED=true
-Environment=PYTHONUSERBASE=/srv/kika-infobus
+Environment=PYTHONUSERBASE=/srv/kika-info-bus/py-env
+WorkingDirectory=/srv/kika-info-bus
 
-Environment=MQTT_SERVER=
-Environment=INFLUX_SERVER=
+Environment=MQTT_SERVER=127.0.0.1
+Environment=INFLUX_SERVER=influxdb://127.0.0.1:8186/status
 Environment=TWITTER_CONSUMER_KEY=
 Environment=TWITTER_CONSUMER_SECRET=
 Environment=TWITTER_ACCESS_TOKEN_KEY=
@@ -15,6 +17,7 @@ Environment=TWITTER_ACCESS_TOKEN_SECRET=
 
 
 ExecStart=/usr/bin/python3 -m infobus
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
