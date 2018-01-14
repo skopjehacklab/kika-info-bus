@@ -10,7 +10,7 @@ Based on MQTT (old stuff, based on 0mq is in `legacy/`).
 * openwrt num associations
 * …
 
-![mqtt](https://raw.githubusercontent.com/skopjehacklab/kika-info-bus/master/mqtt.png "MQTT")
+![mqtt](mqtt.png "MQTT")
 
 ## subscribers
 * store to influxdb
