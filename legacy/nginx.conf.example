@@ -1,8 +1,0 @@
-    location /status {
-        include uwsgi_params;
-        uwsgi_param SCRIPT_NAME /status;
-        uwsgi_pass unix:///run/uwsgi/kika-info-bus.sock;
-        allow all;
-        uwsgi_buffering    off;
-        uwsgi_read_timeout 3600;
-    }

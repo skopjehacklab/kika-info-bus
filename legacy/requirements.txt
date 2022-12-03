@@ -1,7 +1,0 @@
-pyzmq
-gevent
-pyserial
-python-twitter
-requests
-Flask
-influxdb
