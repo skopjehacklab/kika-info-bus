@@ -9,7 +9,7 @@ Environment=PYTHONUSERBASE=/srv/kika-info-bus/py-env
 WorkingDirectory=/srv/kika-info-bus
 
 Environment=MQTT_SERVER=127.0.0.1
-Environment=INFLUX_SERVER=influxdb://127.0.0.1:8186/status
+Environment=INFLUX_SERVER=https+influxdb://token@server:443/status
 Environment=TWITTER_CONSUMER_KEY=
 Environment=TWITTER_CONSUMER_SECRET=
 Environment=TWITTER_ACCESS_TOKEN_KEY=
@@ -17,7 +17,8 @@ Environment=TWITTER_ACCESS_TOKEN_SECRET=
 
 
 ExecStart=/usr/bin/python3 -m infobus
-Restart=always
+Restart=on-failure
+SyslogIdentifier=%N
 
 [Install]
 WantedBy=multi-user.target
