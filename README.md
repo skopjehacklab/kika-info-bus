@@ -1,6 +1,6 @@
 # Kika Info Bus 2.0
 
-Based on MQTT (old stuff, based on 0mq is in `legacy/`).
+Based on MQTT
 
 ## publishers
 * temp sensors
