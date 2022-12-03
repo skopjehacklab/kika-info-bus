@@ -19,7 +19,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe('haklab/+/temp')
     client.subscribe('haklab/+/bootup')
 
-    print('connected')
+    print('mqtt connected')
 
     sn = sdnotify.SystemdNotifier()
     sn.notify("READY=1")
@@ -30,6 +30,8 @@ def main():
     INFLUX = os.environ['INFLUX_SERVER']
 
     influx = influxdb.InfluxDBClient.from_dsn(INFLUX, timeout=5)
+    influx.ping()
+
     userdata = dict()
     userdata['influx'] = influx
     userdata['tags'] = { "location": "hacklab" }
