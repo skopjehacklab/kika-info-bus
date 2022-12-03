@@ -22,7 +22,7 @@ def twitter_update_status(client, userdata, msg):
 
     if current_value == 'OPEN':
         time_initial = time_of_change
-        tweet.PostUpdate("Хаклабот е отворен. Дојди! http://blog.spodeli.org | %s" % time_of_change.strftime('%d.%m.%Y %H:%M:%S'))
+        tweet.PostUpdate("Хаклабот е отворен. Дојди! https://kika.spodeli.org | %s" % time_of_change.strftime('%d.%m.%Y %H:%M:%S'))
     if current_value == 'CLOSED':
         time_opened  = calculate_opened(time_of_change - time_initial)
         tweet.PostUpdate("Хаклабот е затворен. :-( http://status.spodeli.org | %s" % time_opened)
