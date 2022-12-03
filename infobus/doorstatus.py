@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import datetime
 
 def get_last_status(influx):

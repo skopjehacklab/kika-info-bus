@@ -1,4 +1,3 @@
-from __future__ import print_function
 import paho.mqtt.client
 import influxdb
 import sdnotify
